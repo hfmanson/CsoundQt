@@ -136,10 +136,15 @@ void QuteScope::setType(QString type)
 	if (type == "scope") {
 		m_dataDisplay = (DataDisplay *)m_scopeData;
 	}
-	else if (type == "lissajou") {
-		m_dataDisplay = (DataDisplay *)m_lissajouData;
-	}
-	else if (type == "poincare") {
+    else if (type == "lissajou") {
+        m_lissajouData->setType(false);
+        m_dataDisplay = (DataDisplay *)m_lissajouData;
+    }
+    else if (type == "lissajoulines") {
+        m_lissajouData->setType(true);
+        m_dataDisplay = (DataDisplay *)m_lissajouData;
+    }
+    else if (type == "poincare") {
 		m_dataDisplay = (DataDisplay *)m_poincareData;
 	}
 	m_dataDisplay->show();
@@ -189,8 +194,9 @@ void QuteScope::createPropertiesDialog()
 	layout->addWidget(label, 6, 0, Qt::AlignRight|Qt::AlignVCenter);
 	typeComboBox = new QComboBox(dialog);
 	typeComboBox->addItem("Oscilloscope", QVariant(QString("scope")));
-	typeComboBox->addItem("Lissajou curve", QVariant(QString("lissajou")));
-	typeComboBox->addItem("Poincare map", QVariant(QString("poincare")));
+    typeComboBox->addItem("Lissajou curve", QVariant(QString("lissajou")));
+    typeComboBox->addItem("Lissajou curve (lines)", QVariant(QString("lissajoulines")));
+    typeComboBox->addItem("Poincare map", QVariant(QString("poincare")));
 	//   typeComboBox->addItem("Spectrogram", QVariant(QString("fft")));
 	layout->addWidget(typeComboBox, 6, 1, Qt::AlignLeft|Qt::AlignVCenter);
 	label = new QLabel(dialog);
@@ -273,6 +279,7 @@ ScopeItem::ScopeItem(int width, int height)
 {
 	m_width = width;
 	m_height = height;
+    m_lines = false;
 }
 
 void ScopeItem::paint(QPainter *p,
@@ -280,7 +287,11 @@ void ScopeItem::paint(QPainter *p,
                       QWidget */*widget*/)
 {
 	p->setPen(m_pen);
-	p->drawPoints(m_polygon);
+    if (m_lines) {
+        p->drawPolyline(m_polygon);
+    } else {
+        p->drawPoints(m_polygon);
+    }
 }
 
 void ScopeItem::setPen(const QPen & pen)
@@ -299,6 +310,11 @@ void ScopeItem::setSize(int width, int height)
 	m_width = width;
 	m_height = height;
 	prepareGeometryChange();
+}
+
+void ScopeItem::setType(bool lines)
+{
+    m_lines = lines;
 }
 
 ScopeData::ScopeData(ScopeParams *params) : DataDisplay(params)
@@ -443,6 +459,7 @@ void LissajouData::updateData(int channel, double zoomx, double zoomy, bool free
 	}
 	m_params->widget->setSceneRect(-width/2, -height/2, width, height );
 	curve->setPolygon(curveData);
+    curve->setType(lines);
 #ifdef  USE_WIDGET_MUTEX
 	mutex->unlock();
 #endif
@@ -456,6 +473,11 @@ void LissajouData::show()
 void LissajouData::hide()
 {
 	curve->hide();
+}
+
+void LissajouData::setType(bool uselines)
+{
+    lines = uselines;
 }
 
 PoincareData::PoincareData(ScopeParams *params) : DataDisplay(params)

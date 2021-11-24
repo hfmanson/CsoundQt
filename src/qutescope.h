@@ -169,10 +169,12 @@ public:
 	void setPen(const QPen & pen);
 	void setPolygon(const QPolygonF & polygon);
 	void setSize(int width, int height);
+    void setType(bool lines);
 
 protected:
 	int m_width;
 	int m_height;
+    bool m_lines;
 	QPen m_pen;
 	QPolygonF m_polygon;
 };
@@ -230,10 +232,12 @@ public:
 	virtual void updateData(int channel, double zoomx, double zoomy, bool freeze);
 	virtual void show();
 	virtual void hide();
+    virtual void setType(bool lines);
 
 protected:
 	QPolygonF curveData;
 	ScopeItem *curve;
+    bool lines;
 };
 
 
